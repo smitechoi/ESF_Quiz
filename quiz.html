@@ -111,6 +111,9 @@
                 console.error("Firestore 저장 오류:", error);
             }
         }
+        window.submitAnswer = submitAnswer;
+        document.getElementById("submitBtn").addEventListener("click", submitAnswer);
+
     </script>
 </body>
 </html>
