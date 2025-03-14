@@ -43,7 +43,7 @@
         fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
             .then(response => response.text())
             .then(data => {
-                quizData = Para.parse(data, { header: true }).data;
+                quizData = Papa.parse(data, { header: true }).data;
                 loadQuestion();
             })
             .catch(error => console.error("CSV 로드 오류:", error));
