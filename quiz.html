@@ -4,19 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>객관식 퀴즈</title>
+    <title>ESF 퀴즈</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 
 <body>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 
     </script>
     <h1 id="question">로딩 중...</h1>
     <div id="options"></div>
     <button onclick="submitAnswer()">제출</button>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
@@ -34,6 +34,7 @@
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        console.log(db)
         let quizData = [];
         let currentQuestion = {};
         let score = 0;
