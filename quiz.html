@@ -19,7 +19,7 @@
         let answeredQuestions = [];
 
         // CSV에서 데이터 로드
-        fetch("quiz.csv")
+        fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
             .then(response => response.text())
             .then(data => {
                 quizData = Papa.parse(data, { header: true }).data;
