@@ -6,105 +6,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESF 퀴즈</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>  
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyA8SJjT_qbpw90ahkq-v36wO5sJTDh0qeM",
-            authDomain: "esf-quiz.firebaseapp.com",
-            projectId: "esf-quiz",
-            storageBucket: "esf-quiz.firebasestorage.app",
-            messagingSenderId: "974289794287",
-            appId: "1:974289794287:web:c5c2e1c276d7536521971a"
-        };
+    
+</head>
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        console.log(db)
+<body>
+
+    <h1 id="question">로딩 중...</h1>
+    <div id="options"></div>
+    <button onclick="submitAnswer()">제출</button>
+
+    <script type="module">
+        // ✅ Firebase 모듈 가져오기 (Firebase v9 이상)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    
+        // ✅ Firebase 설정 (Firebase 콘솔에서 가져온 정보 입력)
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_PROJECT_ID.appspot.com",
+          messagingSenderId: "YOUR_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+    
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        // CSV 파일 로드 및 퀴즈 로직
+        import { parse } from "https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js";
+    
         let quizData = [];
         let currentQuestion = {};
         let score = 0;
         let totalQuestions = 5;
         let answeredQuestions = [];
-
-        // CSV에서 데이터 로드
-        fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
-            .then(response => response.text())
-            .then(data => {
-                quizData = Papa.parse(data, { header: true }).data;
-                loadQuestion();
-            });
-    </script>
-</head>
-
-<body>
-
-    </script>
-    <h1 id="question">로딩 중...</h1>
-    <div id="options"></div>
-    <button onclick="submitAnswer()">제출</button>
-
-    <script>
-
+    
+        // ✅ GitHub Pages에서 quiz.csv 가져오기 (raw URL 사용)
+        fetch("https://raw.githubusercontent.com/사용자명/저장소명/main/quiz.csv")
+          .then(response => response.text())
+          .then(data => {
+              quizData = parse(data, { header: true }).data;
+              loadQuestion();
+          })
+          .catch(error => console.error("CSV 로드 오류:", error));
+    
         function loadQuestion() {
-            if (answeredQuestions.length >= totalQuestions) {
-                finishQuiz();
-                return;
-            }
-            let index = Math.floor(Math.random() * quizData.length);
-            currentQuestion = quizData[index];
-
-            document.getElementById("question").innerText = currentQuestion.Question;
-            let options = currentQuestion.Options.split(",");
-            let optionsHtml = options.map(option => `
-                <label>
-                    <input type="radio" name="answer" value="${option}"> ${option}
-                </label><br>
-            `).join("");
-
-            document.getElementById("options").innerHTML = optionsHtml;
+          if (answeredQuestions.length >= totalQuestions) {
+              finishQuiz();
+              return;
+          }
+          let index = Math.floor(Math.random() * quizData.length);
+          currentQuestion = quizData[index];
+    
+          if (!currentQuestion || !currentQuestion.Question || !currentQuestion.Options) {
+              console.error("잘못된 퀴즈 데이터:", currentQuestion);
+              return;
+          }
+    
+          document.getElementById("question").innerText = currentQuestion.Question;
+          let options = currentQuestion.Options.split(",");
+          let optionsHtml = options.map(option => `
+              <label>
+                  <input type="radio" name="answer" value="${option}"> ${option}
+              </label><br>
+          `).join("");
+    
+          document.getElementById("options").innerHTML = optionsHtml;
         }
-
+    
         function submitAnswer() {
-            let selectedOption = document.querySelector('input[name="answer"]:checked');
-            if (!selectedOption) {
-                alert("답변을 선택해주세요!");
-                return;
-            }
-            let userAnswer = selectedOption.value;
-            let isCorrect = userAnswer === currentQuestion.Answer;
-
-            answeredQuestions.push({
-                question: currentQuestion.Question,
-                userAnswer: userAnswer,
-                correctAnswer: currentQuestion.Answer,
-                isCorrect: isCorrect
-            });
-
-            if (isCorrect) score++;
-            loadQuestion();
+          let selectedOption = document.querySelector('input[name="answer"]:checked');
+          if (!selectedOption) {
+              alert("답변을 선택해주세요!");
+              return;
+          }
+          let userAnswer = selectedOption.value;
+          let isCorrect = userAnswer === currentQuestion.Answer;
+    
+          answeredQuestions.push({
+              question: currentQuestion.Question,
+              userAnswer: userAnswer,
+              correctAnswer: currentQuestion.Answer,
+              isCorrect: isCorrect
+          });
+    
+          if (isCorrect) score++;
+          loadQuestion();
         }
-
-        function finishQuiz() {
-            let result = {
-                timestamp: new Date().toISOString(),
-                score: score,
-                total: totalQuestions,
-                details: answeredQuestions
-            };
-
-            // Firestore에 결과 저장
-            db.collection("quizResults").add(result)
-                .then((docRef) => {
-                    console.log("결과 저장 완료: ", docRef.id);
-                    window.location.href = `result.html?id=${docRef.id}`; // 결과 페이지 이동
-                })
-                .catch((error) => {
-                    console.error("오류 발생: ", error);
-                });
+    
+        async function finishQuiz() {
+          let result = {
+              timestamp: new Date().toISOString(),
+              score: score,
+              total: totalQuestions,
+              details: answeredQuestions
+          };
+    
+          try {
+            // ✅ Firestore에 결과 저장 (Firebase v9 모듈 방식)
+            const docRef = await addDoc(collection(db, "quizResults"), result);
+            console.log("결과 저장 완료:", docRef.id);
+            window.location.href = `result.html?id=${docRef.id}`;
+          } catch (error) {
+            console.error("Firestore 저장 오류:", error);
+          }
         }
-    </script>
+      </script>
 
 </body>
 
