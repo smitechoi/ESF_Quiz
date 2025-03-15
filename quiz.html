@@ -38,6 +38,7 @@
         let score = 0;
         let totalQuestions = 5;
         let answeredQuestions = [];
+        let currentQuestionIndex = 0;
 
         // ✅ CSV에서 퀴즈 데이터 로드 (GitHub Raw URL 사용)
         fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
@@ -61,8 +62,9 @@
                 console.error("잘못된 퀴즈 데이터:", currentQuestion);
                 return;
             }
-
             document.getElementById("question").innerText = currentQuestion.Question;
+            document.getElementById("difficulty").innerText = `난이도: ${currentQuestion.Difficulty}`;
+
             let options = currentQuestion.Options.split(",");
             let optionsHtml = options.map(option => `
                 <label>
@@ -81,16 +83,21 @@
             }
 
             let userAnswer = selectedOption.value;
+            let currentQuestion = shuffledQuestions[currentQuestionIndex];
             let isCorrect = userAnswer === currentQuestion.Answer;
+
 
             answeredQuestions.push({
                 question: currentQuestion.Question,
                 userAnswer: userAnswer,
                 correctAnswer: currentQuestion.Answer,
-                isCorrect: isCorrect
+                isCorrect: isCorrect,
+                difficulty: currentQuestion.Difficulty,
+                score: currentQuestion.Score
             });
 
             if (isCorrect) score++;
+            currentQuestionIndex++;
             loadQuestion();
         }
 
@@ -112,8 +119,6 @@
             }
         }
         window.submitAnswer = submitAnswer;
-        document.getElementById("submitBtn").addEventListener("click", submitAnswer);
-
     </script>
 </body>
 </html>

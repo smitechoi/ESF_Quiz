@@ -10,7 +10,17 @@
     <div id="result-list"></div>
     <div id="result-detail"></div>
     
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8SJjT_qbpw90ahkq-v36wO5sJTDh0qeM",
+            authDomain: "esf-quiz.firebaseapp.com",
+            projectId: "esf-quiz",
+            storageBucket: "esf-quiz.firebasestorage.app",
+            messagingSenderId: "974289794287",
+            appId: "1:974289794287:web:c5c2e1c276d7536521971a"
+        };
         const urlParams = new URLSearchParams(window.location.search);
         const resultId = urlParams.get("id");
     
