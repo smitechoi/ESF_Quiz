@@ -21,6 +21,10 @@
             messagingSenderId: "974289794287",
             appId: "1:974289794287:web:c5c2e1c276d7536521971a"
         };
+
+        // ✅ Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         const urlParams = new URLSearchParams(window.location.search);
         const resultId = urlParams.get("id");
     

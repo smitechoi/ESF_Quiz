@@ -46,7 +46,7 @@
         }
 
         // ✅ GitHub에서 quiz.csv 가져오기
-        fetch("https://raw.githubusercontent.com/사용자명/저장소명/main/quiz.csv")
+        fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
             .then(response => response.text())
             .then(data => {
                 quizData = Papa.parse(data, { header: true }).data;
