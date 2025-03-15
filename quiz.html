@@ -8,11 +8,10 @@
 </head>
 <body>
     <h1 id="question">로딩 중...</h1>
-    <p id="difficulty"></p> 
+    <p id="difficulty"></p> <!-- 난이도 표시 -->
     <div id="options"></div>
-    <button id="submitBtn">제출</button>
-    <div id="finishContainer"></div> 
-
+    <button id="submitBtn" onclick="submitAnswer()">제출</button>
+    <div id="finishContainer"></div> <!-- ✅ 퀴즈 완료 버튼이 추가될 곳 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <!-- Firebase & PapaParse (ES6 모듈 방식) -->
