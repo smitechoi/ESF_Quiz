@@ -33,40 +33,45 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ✅ 퀴즈 데이터 로드 및 처리
         let quizData = [];
-        let currentQuestion = {};
-        let score = 0;
-        let totalQuestions = 5;
-        let answeredQuestions = [];
+        let selectedQuestions = [];
         let currentQuestionIndex = 0;
+        let score = 0;
+        let answeredQuestions = [];
+        const totalQuestions = 15; // ✅ 퀴즈 개수를 15개로 제한
 
-        // ✅ CSV에서 퀴즈 데이터 로드 (GitHub Raw URL 사용)
-        fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
+        // ✅ 배열 섞기 함수 (퀴즈 문항 순서만 랜덤화, 답변 순서는 유지)
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        // ✅ GitHub에서 quiz.csv 가져오기
+        fetch("https://raw.githubusercontent.com/사용자명/저장소명/main/quiz.csv")
             .then(response => response.text())
             .then(data => {
                 quizData = Papa.parse(data, { header: true }).data;
+                selectedQuestions = shuffleArray(quizData).slice(0, totalQuestions); // ✅ 15문제 랜덤 선택
                 loadQuestion();
             })
             .catch(error => console.error("CSV 로드 오류:", error));
 
         function loadQuestion() {
-            if (answeredQuestions.length >= totalQuestions) {
+            if (currentQuestionIndex >= selectedQuestions.length) {
                 finishQuiz();
                 return;
             }
 
-            let index = Math.floor(Math.random() * quizData.length);
-            currentQuestion = quizData[index];
+            let currentQuestion = selectedQuestions[currentQuestionIndex];
 
             if (!currentQuestion || !currentQuestion.Question || !currentQuestion.Options) {
                 console.error("잘못된 퀴즈 데이터:", currentQuestion);
                 return;
             }
-            document.getElementById("question").innerText = currentQuestion.Question;
-            document.getElementById("difficulty").innerText = `난이도: ${currentQuestion.Difficulty}`;
 
-            let options = currentQuestion.Options.split(",");
+            document.getElementById("question").innerText = currentQuestion.Question;
+            document.getElementById("difficulty").innerText = `난이도: ${currentQuestion.Difficulty} | 점수: ${currentQuestion.Score}`;
+
+            let options = currentQuestion.Options.split(","); // ✅ 답변 순서는 변경하지 않음
             let optionsHtml = options.map(option => `
                 <label>
                     <input type="radio" name="answer" value="${option}"> ${option}
@@ -84,9 +89,8 @@
             }
 
             let userAnswer = selectedOption.value;
-            let currentQuestion = shuffledQuestions[currentQuestionIndex];
+            let currentQuestion = selectedQuestions[currentQuestionIndex];
             let isCorrect = userAnswer === currentQuestion.Answer;
-
 
             answeredQuestions.push({
                 question: currentQuestion.Question,
@@ -97,7 +101,9 @@
                 score: currentQuestion.Score
             });
 
-            if (isCorrect) score++;
+            // ✅ 점수 반영 (정답일 경우 해당 문항의 점수 추가)
+            if (isCorrect) score += parseInt(currentQuestion.Score);
+
             currentQuestionIndex++;
             loadQuestion();
         }
@@ -106,12 +112,11 @@
             let result = {
                 timestamp: new Date().toISOString(),
                 score: score,
-                total: totalQuestions,
+                totalQuestions: selectedQuestions.length,
                 details: answeredQuestions
             };
 
             try {
-                // ✅ Firestore에 결과 저장
                 const docRef = await addDoc(collection(db, "quizResults"), result);
                 console.log("결과 저장 완료:", docRef.id);
                 window.location.href = `result.html?id=${docRef.id}`;
@@ -119,7 +124,11 @@
                 console.error("Firestore 저장 오류:", error);
             }
         }
+
+        // ✅ HTML에서 접근할 수 있도록 `window` 객체에 등록
         window.submitAnswer = submitAnswer;
+        window.finishQuiz = finishQuiz;
+        window.loadQuestion = loadQuestion;
     </script>
 </body>
 </html>
