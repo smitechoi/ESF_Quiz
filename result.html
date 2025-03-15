@@ -30,7 +30,7 @@
     
         if (resultId) {
             // Firestore에서 특정 결과 불러오기
-            db.collection("quizResults").doc(resultId).get()
+            collection("quizResults").doc(resultId).get()
             .then((doc) => {
                 if (doc.exists) {
                     let result = doc.data();
@@ -54,7 +54,7 @@
             });
         } else {
             // Firestore에서 전체 결과 리스트 불러오기
-            db.collection("quizResults").orderBy("timestamp", "desc").get()
+            collection("quizResults").orderBy("timestamp", "desc").get()
             .then((querySnapshot) => {
                 let listHTML = "";
                 querySnapshot.forEach((doc) => {

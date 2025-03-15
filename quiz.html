@@ -8,9 +8,11 @@
 </head>
 <body>
     <h1 id="question">로딩 중...</h1>
-    <p id="difficulty"></p> <!-- 난이도 표시 -->
+    <p id="difficulty"></p> 
     <div id="options"></div>
-    <button onclick="submitAnswer()">제출</button>
+    <button id="submitBtn">제출</button>
+    <div id="finishContainer"></div> 
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <!-- Firebase & PapaParse (ES6 모듈 방식) -->
@@ -57,7 +59,7 @@
 
         function loadQuestion() {
             if (currentQuestionIndex >= selectedQuestions.length) {
-                finishQuiz();
+                createFinishButton();
                 return;
             }
 
@@ -123,6 +125,16 @@
             } catch (error) {
                 console.error("Firestore 저장 오류:", error);
             }
+        }
+        function createFinishButton(){
+            let finishContainer = document.getElementById("finishContainer");
+            finishContainer.innerHTML = "";
+
+            let finishButton = document.createElement("button");
+            finishButton.innerText = "퀴즈 완료";
+            finishButton.onclick = finishQuiz; // ✅ 클릭 시 `finishQuiz()` 실행
+
+            finishContainer.appendChild(finishButton);
         }
 
         // ✅ HTML에서 접근할 수 있도록 `window` 객체에 등록
