@@ -5,6 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>객관식 퀴즈</title>
+
+    <!-- ✅ 스타일 추가 -->
+    <style>
+        #options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .option-btn {
+            display: inline-block;
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 2px solid #007BFF;
+            background-color: #f8f9fa;
+            color: #007BFF;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-width: 120px;
+        }
+        .option-btn:hover {
+            background-color: #007BFF;
+            color: white;
+        }
+        .option-btn.selected {
+            background-color: #0056b3;
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <h1 id="question">로딩 중...</h1>
@@ -39,6 +70,8 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let answeredQuestions = [];
+        const fourPointQuestions = 5; // ✅ 4점짜리 문제 개수
+        const twoPointQuestions = 10; // ✅ 2점짜리 문제 개수
         const totalQuestions = 15; // ✅ 퀴즈 개수를 15개로 제한
 
         // ✅ 배열 섞기 함수 (퀴즈 문항 순서만 랜덤화, 답변 순서는 유지)
@@ -51,11 +84,23 @@
             .then(response => response.text())
             .then(data => {
                 quizData = Papa.parse(data, { header: true }).data;
-                selectedQuestions = shuffleArray(quizData).slice(0, totalQuestions); // ✅ 15문제 랜덤 선택
+                selectQuestions();
                 loadQuestion();
             })
             .catch(error => console.error("CSV 로드 오류:", error));
 
+        function selectQuestions() {
+            // ✅ 4점짜리 문제 5개, 2점짜리 문제 10개 선택
+            let fourPointPool = quizData.filter(q => parseInt(q.Score) === 4);
+            let twoPointPool = quizData.filter(q => parseInt(q.Score) === 2);
+
+            // ✅ 필요한 만큼 랜덤하게 선택
+            let selectedFour = shuffleArray(fourPointPool).slice(0, fourPointQuestions);
+            let selectedTwo = shuffleArray(twoPointPool).slice(0, twoPointQuestions);
+
+            // ✅ 최종 문제 목록 생성 후 랜덤 섞기
+            selectedQuestions = shuffleArray([...selectedFour, ...selectedTwo]);
+        }
         function loadQuestion() {
             if (currentQuestionIndex >= selectedQuestions.length) {
                 createFinishButton();
