@@ -173,7 +173,7 @@
             currentQuestionIndex++;
             loadQuestion();
         }
-        function finishQuiz() {
+        async function finishQuiz() {
             let result = {
                 timestamp: new Date().toISOString(),
                 score: score,
@@ -181,11 +181,16 @@
                 details: answeredQuestions
             };
 
-            let results = JSON.parse(localStorage.getItem("quizResults") || "[]");
-            results.push(result);
-            localStorage.setItem("quizResults", JSON.stringify(results));
+            try {
+                // ✅ Firestore에 저장
+                const docRef = await addDoc(collection(db, "quizResults"), result);
+                console.log("결과 저장 완료:", docRef.id);
 
-            window.location.href = "result.html";
+                // ✅ ID 값을 포함하여 result.html로 이동
+                window.location.href = `result.html?id=${docRef.id}`;
+            } catch (error) {
+                console.error("Firestore 저장 오류:", error);
+            }
         }
         window.submitAnswer = submitAnswer;
         window.loadQuestion = loadQuestion;

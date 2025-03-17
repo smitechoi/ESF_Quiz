@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퀴즈 메인 페이지</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .button-container {
+            display: flex;
+            gap: 20px;
+        }
+        .menu-btn {
+            width: 200px;
+            height: 80px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            border: none;
+        }
+        .quiz-btn {
+            background-color: #007BFF;
+            color: white;
+        }
+        .quiz-btn:hover {
+            background-color: #0056b3;
+        }
+        .external-link-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .external-link-btn:hover {
+            background-color: #218838;
+        }
+        .another-link-btn {
+            background-color: #FFC107;
+            color: black;
+        }
+        .another-link-btn:hover {
+            background-color: #E0A800;
+        }
+    </style>
+</head>
+<body>
+    <h1>2025-1 동아리박람회 ESF 부스</h1>
+    <div class="button-container">
+        <button class="menu-btn quiz-btn" onclick="location.href='quiz.html'">퀴즈 시작</button>
+        <button class="menu-btn external-link-btn" onclick="location.href='https://www.instagram.com/cau_esf/'">중앙대 ESF 인스타그램</button>
+        <button class="menu-btn another-link-btn" onclick="location.href='https://www.instagram.com/cau_esf/'">다른 링크 버튼</button>
+    </div>
+</body>
+</html>

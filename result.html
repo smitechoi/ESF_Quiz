@@ -4,15 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>퀴즈 결과</title>
-</head>
-<body>
-    <h1>퀴즈 결과</h1>
-    <div id="result-list"></div>
-    <div id="result-detail"></div>
-    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        h2, p {
+            text-align: center;
+        }
+    </style>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyA8SJjT_qbpw90ahkq-v36wO5sJTDh0qeM",
             authDomain: "esf-quiz.firebaseapp.com",
@@ -22,52 +32,35 @@
             appId: "1:974289794287:web:c5c2e1c276d7536521971a"
         };
 
-        // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const urlParams = new URLSearchParams(window.location.search);
-        const resultId = urlParams.get("id");
-    
-        if (resultId) {
-            // Firestore에서 특정 결과 불러오기
-            collection("quizResults").doc(resultId).get()
-            .then((doc) => {
-                if (doc.exists) {
-                    let result = doc.data();
-                    document.getElementById("result-detail").innerHTML = `
-                        <h2>점수: ${result.score} / ${result.total}</h2>
-                        <ul>
-                            ${result.details.map(q => `
-                                <li>
-                                    <strong>${q.question}</strong><br>
-                                    답변: ${q.userAnswer} (정답: ${q.correctAnswer}) ${q.isCorrect ? "✅" : "❌"}
-                                </li>
-                            `).join("")}
-                        </ul>
-                        <button onclick="window.location.href='result.html'">돌아가기</button>
-                    `;
-                } else {
-                    document.getElementById("result-detail").innerHTML = "결과를 찾을 수 없습니다.";
-                }
-            }).catch((error) => {
-                console.error("오류 발생: ", error);
-            });
-        } else {
-            // Firestore에서 전체 결과 리스트 불러오기
-            collection("quizResults").orderBy("timestamp", "desc").get()
-            .then((querySnapshot) => {
-                let listHTML = "";
-                querySnapshot.forEach((doc) => {
-                    let data = doc.data();
-                    listHTML += `<div>
-                        <a href="result.html?id=${doc.id}">결과: ${data.score} / ${data.total} (${data.timestamp})</a>
-                    </div>`;
-                });
-                document.getElementById("result-list").innerHTML = listHTML;
-            }).catch((error) => {
-                console.error("오류 발생: ", error);
-            });
+
+        async function getQuizResult() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const resultId = urlParams.get("id");
+
+            if (!resultId) {
+                document.body.innerHTML = "<h2>결과를 찾을 수 없습니다.</h2>";
+                return;
+            }
+
+            const docRef = doc(db, "quizResults", resultId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                document.body.innerHTML = `<h2>퀴즈 결과</h2>
+                    <p>완료 시간: ${data.timestamp}</p>
+                    <p>점수: ${data.score} / ${data.total}</p>`;
+            } else {
+                document.body.innerHTML = "<h2>결과를 찾을 수 없습니다.</h2>";
+            }
         }
-    </script>    
+
+        getQuizResult();
+    </script>
+</head>
+<body>
+    <h2>결과를 불러오는 중...</h2>
 </body>
 </html>
