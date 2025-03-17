@@ -128,7 +128,7 @@
 
         function loadQuestion() {
             if (currentQuestionIndex >= selectedQuestions.length) {
-                createFinishButton();
+                finishQuiz()
                 return;
             }
 
@@ -173,7 +173,20 @@
             currentQuestionIndex++;
             loadQuestion();
         }
+        function finishQuiz() {
+            let result = {
+                timestamp: new Date().toISOString(),
+                score: score,
+                total: totalQuestions,
+                details: answeredQuestions
+            };
 
+            let results = JSON.parse(localStorage.getItem("quizResults") || "[]");
+            results.push(result);
+            localStorage.setItem("quizResults", JSON.stringify(results));
+
+            window.location.href = "result.html";
+        }
         window.submitAnswer = submitAnswer;
         window.loadQuestion = loadQuestion;
         window.selectOption = selectOption;
