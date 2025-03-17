@@ -11,21 +11,24 @@
         #options {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 20px;
             justify-content: center;
         }
         .option-btn {
-            display: inline-block;
-            padding: 15px 20px;
-            font-size: 18px;
-            border: 2px solid #007BFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
+            height: 150px;
+            font-size: 20px;
+            font-weight: bold;
+            border: 3px solid #007BFF;
             background-color: #f8f9fa;
             color: #007BFF;
-            border-radius: 10px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-            min-width: 120px;
         }
         .option-btn:hover {
             background-color: #007BFF;
@@ -34,6 +37,7 @@
         .option-btn.selected {
             background-color: #0056b3;
             color: white;
+            border-color: #004494;
         }
     </style>
 </head>
