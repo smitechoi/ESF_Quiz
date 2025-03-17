@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>객관식 퀴즈</title>
 
     <!-- ✅ 스타일 추가 -->
@@ -40,22 +39,22 @@
             border-color: #004494;
         }
     </style>
+
+    <!-- ✅ PapaParse CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
     <h1 id="question">로딩 중...</h1>
     <p id="difficulty"></p> <!-- 난이도 표시 -->
     <div id="options"></div>
-    <button id="submitBtn" onclick="submitAnswer()">제출</button>
+    <button id="submitBtn">제출</button>
     <div id="finishContainer"></div> <!-- ✅ 퀴즈 완료 버튼이 추가될 곳 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
-    <!-- Firebase & PapaParse (ES6 모듈 방식) -->
+    <!-- ✅ Firebase 모듈 방식 -->
     <script type="module">
-        // ✅ Firebase 모듈 가져오기 (v9 이상)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ✅ Firebase 설정 (Firebase 콘솔에서 가져온 정보 입력)
         const firebaseConfig = {
             apiKey: "AIzaSyA8SJjT_qbpw90ahkq-v36wO5sJTDh0qeM",
             authDomain: "esf-quiz.firebaseapp.com",
@@ -65,7 +64,6 @@
             appId: "1:974289794287:web:c5c2e1c276d7536521971a"
         };
 
-        // ✅ Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -74,16 +72,14 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let answeredQuestions = [];
-        const fourPointQuestions = 5; // ✅ 4점짜리 문제 개수
-        const twoPointQuestions = 10; // ✅ 2점짜리 문제 개수
-        const totalQuestions = 15; // ✅ 퀴즈 개수를 15개로 제한
+        const totalQuestions = 15;
+        const fourPointQuestions = 5;
+        const twoPointQuestions = 10;
 
-        // ✅ 배열 섞기 함수 (퀴즈 문항 순서만 랜덤화, 답변 순서는 유지)
         function shuffleArray(array) {
             return array.sort(() => Math.random() - 0.5);
         }
 
-        // ✅ GitHub에서 quiz.csv 가져오기
         fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
             .then(response => response.text())
             .then(data => {
@@ -94,17 +90,13 @@
             .catch(error => console.error("CSV 로드 오류:", error));
 
         function selectQuestions() {
-            // ✅ 4점짜리 문제 5개, 2점짜리 문제 10개 선택
             let fourPointPool = quizData.filter(q => parseInt(q.Score) === 4);
             let twoPointPool = quizData.filter(q => parseInt(q.Score) === 2);
-
-            // ✅ 필요한 만큼 랜덤하게 선택
             let selectedFour = shuffleArray(fourPointPool).slice(0, fourPointQuestions);
             let selectedTwo = shuffleArray(twoPointPool).slice(0, twoPointQuestions);
-
-            // ✅ 최종 문제 목록 생성 후 랜덤 섞기
             selectedQuestions = shuffleArray([...selectedFour, ...selectedTwo]);
         }
+
         function loadQuestion() {
             if (currentQuestionIndex >= selectedQuestions.length) {
                 createFinishButton();
@@ -112,33 +104,30 @@
             }
 
             let currentQuestion = selectedQuestions[currentQuestionIndex];
-
-            if (!currentQuestion || !currentQuestion.Question || !currentQuestion.Options) {
-                console.error("잘못된 퀴즈 데이터:", currentQuestion);
-                return;
-            }
-
             document.getElementById("question").innerText = currentQuestion.Question;
             document.getElementById("difficulty").innerText = `난이도: ${currentQuestion.Difficulty} | 점수: ${currentQuestion.Score}`;
 
-            let options = currentQuestion.Options.split(","); // ✅ 답변 순서는 변경하지 않음
+            let options = currentQuestion.Options.split(",");
             let optionsHtml = options.map(option => `
-                <label>
-                    <input type="radio" name="answer" value="${option}"> ${option}
-                </label><br>
+                <button class="option-btn" onclick="selectOption(this)" data-value="${option}">${option}</button>
             `).join("");
 
             document.getElementById("options").innerHTML = optionsHtml;
         }
 
+        function selectOption(button) {
+            document.querySelectorAll(".option-btn").forEach(btn => btn.classList.remove("selected"));
+            button.classList.add("selected");
+        }
+
         function submitAnswer() {
-            let selectedOption = document.querySelector('input[name="answer"]:checked');
-            if (!selectedOption) {
+            let selectedButton = document.querySelector(".option-btn.selected");
+            if (!selectedButton) {
                 alert("답변을 선택해주세요!");
                 return;
             }
 
-            let userAnswer = selectedOption.value;
+            let userAnswer = selectedButton.dataset.value;
             let currentQuestion = selectedQuestions[currentQuestionIndex];
             let isCorrect = userAnswer === currentQuestion.Answer;
 
@@ -151,44 +140,15 @@
                 score: currentQuestion.Score
             });
 
-            // ✅ 점수 반영 (정답일 경우 해당 문항의 점수 추가)
             if (isCorrect) score += parseInt(currentQuestion.Score);
-
             currentQuestionIndex++;
             loadQuestion();
         }
 
-        async function finishQuiz() {
-            let result = {
-                timestamp: new Date().toISOString(),
-                score: score,
-                totalQuestions: selectedQuestions.length,
-                details: answeredQuestions
-            };
-
-            try {
-                const docRef = await addDoc(collection(db, "quizResults"), result);
-                console.log("결과 저장 완료:", docRef.id);
-                window.location.href = `result.html?id=${docRef.id}`;
-            } catch (error) {
-                console.error("Firestore 저장 오류:", error);
-            }
-        }
-        function createFinishButton(){
-            let finishContainer = document.getElementById("finishContainer");
-            finishContainer.innerHTML = "";
-
-            let finishButton = document.createElement("button");
-            finishButton.innerText = "퀴즈 완료";
-            finishButton.onclick = finishQuiz; // ✅ 클릭 시 `finishQuiz()` 실행
-
-            finishContainer.appendChild(finishButton);
-        }
-
-        // ✅ HTML에서 접근할 수 있도록 `window` 객체에 등록
         window.submitAnswer = submitAnswer;
-        window.finishQuiz = finishQuiz;
         window.loadQuestion = loadQuestion;
+        window.selectOption = selectOption;
+        document.getElementById("submitBtn").addEventListener("click", submitAnswer);
     </script>
 </body>
 </html>
