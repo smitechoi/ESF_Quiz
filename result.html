@@ -18,6 +18,25 @@
         h2, p {
             text-align: center;
         }
+        .button-container {
+            display: flex;
+            gap: 20px;
+        }
+        .menu-btn {
+            width: 300px;
+            height: 80px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            border: none;
+        }
+        .home-btn {
+            background-color: #007BFF;
+            color: white;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -53,7 +72,9 @@
 
                     <h3>점수: ${data.score} / 40</h3>
 
-                    <p>완료 시간: ${data.timestamp}</p>`;
+                    <p>완료 시간: ${data.timestamp}</p>
+                    
+                    <button class="menu-btn home-btn" onclick="location.href='index.html'">돌아가기</button>`;
             } else {
                 document.body.innerHTML = "<h2>결과를 찾을 수 없습니다.</h2>";
             }
