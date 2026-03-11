@@ -74,8 +74,8 @@
 </head>
 <body>
     <h1 id="question">로딩 중...</h1>
-    <p id="difficulty"></p> <!-- 난이도 표시 -->
     <div id="options"></div>
+    <h2 id="feedback" style="min-height: 30px; margin: 20px 0;"></h2>
     <button id="submitBtn">제출</button>
     <div id="finishContainer"></div> <!-- ✅ 퀴즈 완료 버튼이 추가될 곳 -->
 
@@ -101,29 +101,32 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let answeredQuestions = [];
-        const totalQuestions = 15;
-        const fourPointQuestions = 5;
-        const twoPointQuestions = 10;
+        let totalQuestions = 0;
+        let isAnswerSubmitted = false;
 
         function shuffleArray(array) {
             return array.sort(() => Math.random() - 0.5);
         }
 
-        fetch("https://raw.githubusercontent.com/smitechoi/esf_quiz/main/quiz.csv")
+        const urlParams = new URLSearchParams(window.location.search);
+        const lang = urlParams.get('lang') || 'ko';
+        const csvPath = lang === 'en' ? 'quiz_international.csv' : 'quiz.csv';
+
+        document.getElementById("submitBtn").innerText = lang === 'en' ? "Submit" : "제출";
+
+        fetch(csvPath)
             .then(response => response.text())
             .then(data => {
-                quizData = Papa.parse(data, { header: true }).data;
+                quizData = Papa.parse(data, { header: true, skipEmptyLines: true }).data;
                 selectQuestions();
                 loadQuestion();
             })
             .catch(error => console.error("CSV 로드 오류:", error));
 
         function selectQuestions() {
-            let fourPointPool = quizData.filter(q => parseInt(q.Score) === 4);
-            let twoPointPool = quizData.filter(q => parseInt(q.Score) === 2);
-            let selectedFour = shuffleArray(fourPointPool).slice(0, fourPointQuestions);
-            let selectedTwo = shuffleArray(twoPointPool).slice(0, twoPointQuestions);
-            selectedQuestions = shuffleArray([...selectedFour, ...selectedTwo]);
+            // 순서대로 퀴즈 진행
+            selectedQuestions = quizData;
+            totalQuestions = selectedQuestions.length;
         }
 
         function loadQuestion() {
@@ -134,7 +137,6 @@
 
             let currentQuestion = selectedQuestions[currentQuestionIndex];
             document.getElementById("question").innerText = currentQuestion.Question;
-            document.getElementById("difficulty").innerText = `난이도: ${currentQuestion.Difficulty} | 점수: ${currentQuestion.Score}`;
 
             let options = currentQuestion.Options.split(",");
             let optionsHtml = options.map(option => `
@@ -142,17 +144,28 @@
             `).join("");
 
             document.getElementById("options").innerHTML = optionsHtml;
+
+            isAnswerSubmitted = false;
+            document.getElementById("submitBtn").innerText = lang === 'en' ? "Submit" : "제출";
+            document.getElementById("feedback").innerText = "";
         }
 
         function selectOption(button) {
+            if (isAnswerSubmitted) return;
             document.querySelectorAll(".option-btn").forEach(btn => btn.classList.remove("selected"));
             button.classList.add("selected");
         }
 
         function submitAnswer() {
+            if (isAnswerSubmitted) {
+                currentQuestionIndex++;
+                loadQuestion();
+                return;
+            }
+
             let selectedButton = document.querySelector(".option-btn.selected");
             if (!selectedButton) {
-                alert("답변을 선택해주세요!");
+                alert(lang === 'en' ? "Please select an answer!" : "답변을 선택해주세요!");
                 return;
             }
 
@@ -169,9 +182,31 @@
                 score: currentQuestion.Score
             });
 
-            if (isCorrect) score += parseInt(currentQuestion.Score);
-            currentQuestionIndex++;
-            loadQuestion();
+            if (isCorrect) {
+                score += parseInt(currentQuestion.Score);
+                document.getElementById("feedback").innerText = lang === 'en' ? "Correct!" : "정답입니다!";
+                document.getElementById("feedback").style.color = "green";
+                selectedButton.style.backgroundColor = "green";
+                selectedButton.style.borderColor = "darkgreen";
+                selectedButton.style.color = "white";
+            } else {
+                document.getElementById("feedback").innerText = lang === 'en' ? `Incorrect! Correct Answer: ${currentQuestion.Answer}` : `오답입니다! 정답: ${currentQuestion.Answer}`;
+                document.getElementById("feedback").style.color = "red";
+                selectedButton.style.backgroundColor = "red";
+                selectedButton.style.borderColor = "darkred";
+                selectedButton.style.color = "white";
+                
+                document.querySelectorAll(".option-btn").forEach(btn => {
+                    if (btn.dataset.value === currentQuestion.Answer) {
+                        btn.style.backgroundColor = "green";
+                        btn.style.borderColor = "darkgreen";
+                        btn.style.color = "white";
+                    }
+                });
+            }
+
+            document.getElementById("submitBtn").innerText = lang === 'en' ? "Next" : "다음";
+            isAnswerSubmitted = true;
         }
         async function finishQuiz() {
             let result = {
@@ -187,7 +222,7 @@
                 console.log("결과 저장 완료:", docRef.id);
 
                 // ✅ ID 값을 포함하여 result.html로 이동
-                window.location.href = `result.html?id=${docRef.id}`;
+                window.location.href = `result.html?id=${docRef.id}&lang=${lang}`;
             } catch (error) {
                 console.error("Firestore 저장 오류:", error);
             }

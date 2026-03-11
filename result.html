@@ -37,6 +37,34 @@
             background-color: #007BFF;
             color: white;
         }
+        table {
+            width: 90%;
+            max-width: 800px;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            font-size: 16px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+            text-align: center;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+            text-align: center;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -57,6 +85,7 @@
         async function getQuizResult() {
             const urlParams = new URLSearchParams(window.location.search);
             const resultId = urlParams.get("id");
+            const lang = urlParams.get("lang") || "ko";
 
             if (!resultId) {
                 document.body.innerHTML = "<h2>결과를 찾을 수 없습니다.</h2>";
@@ -68,15 +97,40 @@
 
             if (docSnap.exists()) {
                 let data = docSnap.data();
-                document.body.innerHTML = `<h1>퀴즈 결과</h1>
+                const isEn = lang === 'en';
+                
+                let detailsHtml = `
+                    <table>
+                        <tr>
+                            <th>${isEn ? 'Question' : '문제'}</th>
+                            <th>${isEn ? 'Your Answer' : '나의 답'}</th>
+                            <th>${isEn ? 'Correct Answer' : '정답'}</th>
+                            <th>${isEn ? 'Result' : '결과'}</th>
+                        </tr>
+                `;
+                
+                if (data.details && data.details.length > 0) {
+                    data.details.forEach(item => {
+                        let resultText = item.isCorrect ? "O" : "X";
+                        let resultClass = item.isCorrect ? "correct" : "incorrect";
+                        detailsHtml += `
+                            <tr>
+                                <td>${item.question}</td>
+                                <td>${item.userAnswer}</td>
+                                <td>${item.correctAnswer}</td>
+                                <td class="${resultClass}">${resultText}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                detailsHtml += `</table>`;
 
-                    <h3>점수: ${data.score} / 40</h3>
-
-                    <p>완료 시간: ${data.timestamp}</p>
-                    
-                    <button class="menu-btn home-btn" onclick="location.href='index.html'">돌아가기</button>`;
+                document.body.innerHTML = `<h1>${isEn ? 'Quiz Result' : '퀴즈 결과'}</h1>
+                    <h3>${isEn ? 'Score' : '점수'}: ${data.score}</h3>
+                    ${detailsHtml}
+                    <button class="menu-btn home-btn" style="margin-top:20px; margin-bottom:50px;" onclick="location.href='index.html'">${isEn ? 'Return Home' : '홈으로 돌아가기'}</button>`;
             } else {
-                document.body.innerHTML = "<h2>결과를 찾을 수 없습니다.</h2>";
+                document.body.innerHTML = "<h2>결과를 찾을 수 없습니다. (Result not found)</h2>";
             }
         }
 
